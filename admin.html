@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login & Dashboard</title>
+
+    <style>
+        /* Basic layout */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+            color: #222;
+        }
+
+        .page {
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 820px;
+            margin: 20px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .hidden { display: none; }
+
+        .toprow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Small button */
+        button.small {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        /* Dashboard sections */
+        .dashboard-section {
+            border: 1px solid #e0e0e0;
+            padding: 14px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+        }
+
+        /* Profile */
+        .profile-row { display: flex; align-items: center; gap: 16px; }
+        .profile-photo {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+
+        /* Inputs */
+        input[type="text"],
+        input[type="password"],
+        input[type="url"],
+        input[type="file"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /* Buttons */
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 12px;
+            margin-right: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover { filter: brightness(0.95); }
+
+        button.cancel {
+            background: #777;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            margin-top: 5px;
+        }
+
+        /* Professional Skill Display Styles */
+        .skill-category-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: #fcfcfc;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .cat-label {
+            font-weight: bold;
+            min-width: 120px;
+            color: #333;
+        }
+        .cat-input-field {
+            flex-grow: 1;
+            margin: 0 !important;
+        }
+        .cat-pos-input {
+            width: 50px !important;
+            margin: 0 !important;
+            text-align: center;
+        }
+
+        /* Projects list */
+        .projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #e3e3e3;
+            background: #fafafa;
+        }
+
+        .project-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .folder-icon {
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .project-title {
+            font-weight: 600;
+        }
+
+        .change-btn {
+            background: #f0f0f0;
+            color: #222;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 72px;
+            text-align: center;
+        }
+
+        .change-btn:hover {
+            background: #e6e6e6;
+        }
+
+        .form-buttons {
+            display:flex;
+            gap:10px;
+            margin-top: 16px;
+            align-items:center;
+        }
+
+        /* Media Previews */
+        .media-preview-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        .media-preview-container img, 
+        .media-preview-container video {
+            max-width: 100%;
+            max-height: 150px;
+            display: block;
+            border-radius: 4px;
+        }
+
+        /* Toast Styles */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        @media(max-width: 640px) {
+            .page { padding: 16px; margin: 12px; }
+            .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .project-left { gap: 8px; }
+            .skill-category-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-page" class="page">
+        <h2>Admin Login</h2>
+        <form id="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Login</button>
+            <p id="login-error" class="error-message"></p>
+        </form>
+    </div>
+
+    <div id="dashboard-page" class="page hidden">
+        <div class="toprow">
+            <h1>Welcome, Admin!</h1>
+            <button id="logout-button" class="small">Logout</button>
+        </div>
+
+        <div class="dashboard-section">
+            <h3>Profile Photo</h3>
+            <div class="profile-row">
+                <img id="profile-pic" src="https://via.placeholder.com/150" class="profile-photo" alt="Profile">
+                <div class="profile-controls">
+                    <input type="file" id="photo-input" accept="image/*" hidden>
+                    <button id="add-change-photo">Add/Change Photo</button>
+                    <p id="photo-status" style="font-size: 12px; color: #555;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h3>Skills Management</h3>
+            <div id="skills-list-admin">
+                </div>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            
+            <div class="skill-footer-actions">
+                <div id="new-category-form" class="hidden" style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+                    <input type="text" id="new-cat-name" placeholder="Category Name (e.g. Frontend)">
+                    <input type="text" id="new-cat-skills" placeholder="Skills (e.g. HTML, CSS, JS)">
+                    <input type="number" id="new-cat-pos" placeholder="Order (e.g. 1)">
+                    <button id="save-new-cat" class="small">Save Category</button>
+                    <button id="cancel-new-cat" class="small cancel">Cancel</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button id="show-add-cat-btn" class="small">Add New Category</button>
+                    <button id="delete-selected-skills-btn" class="small btn-danger" style="margin-top:0">Delete Selected</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h3>Projects</h3>
+            <div id="projects-list" class="projects-list"></div>
+            <div class="project-controls" style="margin-top: 15px;">
+                <button id="project-button">Add New Project</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="project-page" class="page hidden">
+        <h2 id="project-form-title">Submit New Project</h2>
+        <p id="submit-message" class="success-message hidden">✔ Project saved successfully!</p>
+        <form id="project-form">
+            <label for="project-title">Project Title:</label>
+            <input type="text" id="project-title" required>
+            
+            <label for="project-description">Description:</label>
+            <textarea id="project-description" rows="5" required></textarea>
+            
+            <label for="project-technologies">Technologies Used (comma separated):</label>
+            <input type="text" id="project-technologies">
+            
+            <label for="project-image">Add/Change Image:</label>
+            <input type="file" id="project-image" accept="image/*">
+            <div id="current-image-preview" class="media-preview-container hidden">
+                <p style="font-size: 12px; margin: 0 0 5px 0;">Current Image:</p>
+                <img src="" id="display-img">
+                <button type="button" class="btn-danger" id="remove-img-btn">Remove Current Image</button>
+            </div>
+
+            <label for="project-video">Add/Change Video (file):</label>
+            <input type="file" id="project-video" accept="video/*">
+            <div id="current-video-preview" class="media-preview-container hidden">
+                <p style="font-size: 12px; margin: 0 0 5px 0;">Current Video:</p>
+                <video src="" id="display-vid" controls></video>
+                <button type="button" class="btn-danger" id="remove-vid-btn">Remove Current Video</button>
+            </div>
+
+            <label for="project-position">Position (1, 2, ...):</label>
+            <input type="number" id="project-position" min="1">
+            
+            <label for="project-github">GitHub Link:</label>
+            <input type="url" id="project-github">
+            
+            <label for="project-live">Live Demo Link:</label>
+            <input type="url" id="project-live">
+            
+            <div class="form-buttons">
+                <button type="submit" id="submit-project-btn">Submit Project</button>
+                <button type="button" id="cancel-project-btn" class="cancel">Cancel</button>
+            </div>
+            <p id="project-upload-status" style="font-size: 13px; color: #007bff; margin-top: 10px;"></p>
+        </form>
+    </div>
+
+    <div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, deleteField } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAHot5O0xWs2GQC6XemRscEEr9Vc_B-8EI",
+  authDomain: "my-portfolio-45787.firebaseapp.com",
+  projectId: "my-portfolio-45787",
+  storageBucket: "my-portfolio-45787.firebasestorage.app",
+  messagingSenderId: "95821810944",
+  appId: "1:95821810944:web:80cf4b42234f1201d7f7e5",
+  measurementId: "G-PZZ74C1CC8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const CLOUD_NAME = "dtndpjoca"; 
+const UPLOAD_PRESET = "My_new_Portfolio";
+
+const CONFIG_DOC = doc(db, "admin_config", "config");
+const DATA_DOC   = doc(db, "admin_data", "data");
+const PROJECTS   = collection(db, "projects");
+
+let editingProjectId = null;
+let deleteImageFlag = false;
+let deleteVideoFlag = false;
+
+const loginPage = document.getElementById("login-page");
+const dashboardPage = document.getElementById("dashboard-page");
+const projectPage = document.getElementById("project-page");
+
+onAuthStateChanged(auth, user => {
+    loginPage.classList.toggle("hidden", !!user);
+    dashboardPage.classList.toggle("hidden", !user);
+    if (user) loadDashboard();
+});
+
+document.getElementById("login-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+        await signInWithEmailAndPassword(auth, document.getElementById("username").value.trim(), document.getElementById("password").value);
+    } catch (err) {
+        document.getElementById("login-error").textContent = err.message;
+    }
+});
+
+document.getElementById("logout-button").onclick = () => signOut(auth);
+
+async function uploadToCloudinary(file) {
+    const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
+        method: "POST",
+        body: formData
+    });
+    const data = await res.json();
+    return data.secure_url;
+}
+
+document.getElementById("add-change-photo").onclick = () => document.getElementById("photo-input").click();
+
+document.getElementById("photo-input").addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = document.getElementById("photo-status");
+    status.textContent = "Uploading...";
+    try {
+        const url = await uploadToCloudinary(file);
+        await setDoc(CONFIG_DOC, { profilePhoto: url }, { merge: true });
+        document.getElementById("profile-pic").src = url;
+        status.textContent = "Photo updated!";
+    } catch (err) {
+        status.textContent = "Upload failed.";
+    }
+});
+
+/* ================= SKILLS ================= */
+function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = "show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+}
+
+async function loadSkills() {
+    const snap = await getDoc(DATA_DOC);
+    // Support legacy objects or new ordered arrays
+    let skillsData = snap.exists() ? snap.data().skills_ordered || [] : [];
+    
+    // Fallback for old data structure conversion
+    if (!Array.isArray(skillsData) && snap.exists()) {
+        const oldData = snap.data().skills_categorized || {};
+        skillsData = Object.keys(oldData).map((cat, idx) => ({
+            category: cat,
+            skills: oldData[cat],
+            position: idx + 1
+        }));
+    }
+
+    // Sort by position
+    skillsData.sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    const container = document.getElementById("skills-list-admin");
+    container.innerHTML = "";
+    
+    if (skillsData.length === 0) {
+        container.innerHTML = "<p style='color:#888'>No skills added yet.</p>";
+        return;
+    }
+
+    skillsData.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "skill-category-row";
+        const safeId = item.category.replace(/\s+/g, '');
+        
+        row.innerHTML = `
+            <input type="checkbox" class="skill-checkbox" data-index="${index}">
+            <input type="number" class="cat-pos-input" value="${item.position || index+1}" id="pos-${safeId}">
+            <span class="cat-label">${item.category} :</span>
+            <input type="text" class="cat-input-field" value="${item.skills}" id="input-${safeId}">
+            <button class="small" onclick="window.updateCategory('${item.category}', '${safeId}')">Update</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+window.updateCategory = async (catName, safeId) => {
+    const newValue = document.getElementById(`input-${safeId}`).value.trim();
+    const newPos = Number(document.getElementById(`pos-${safeId}`).value);
+    if (!newValue) return;
+    
+    const snap = await getDoc(DATA_DOC);
+    let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
+    
+    const idx = skills_ordered.findIndex(s => s.category === catName);
+    if (idx !== -1) {
+        skills_ordered[idx].skills = newValue;
+        skills_ordered[idx].position = newPos;
+    }
+    
+    await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
+    showToast(`Updated ${catName}`);
+    loadSkills();
+};
+
+document.getElementById("show-add-cat-btn").onclick = () => {
+    document.getElementById("new-category-form").classList.remove("hidden");
+};
+
+document.getElementById("cancel-new-cat").onclick = () => {
+    document.getElementById("new-category-form").classList.add("hidden");
+};
+
+document.getElementById("save-new-cat").onclick = async () => {
+    const name = document.getElementById("new-cat-name").value.trim();
+    const skills = document.getElementById("new-cat-skills").value.trim();
+    const pos = Number(document.getElementById("new-cat-pos").value);
+    
+    if (!name || !skills) { alert("Fill name and skills"); return; }
+    
+    const snap = await getDoc(DATA_DOC);
+    let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
+    
+    skills_ordered.push({
+        category: name,
+        skills: skills,
+        position: pos || (skills_ordered.length + 1)
+    });
+    
+    await setDoc(DATA_DOC, { skills_ordered }, { merge: true });
+    document.getElementById("new-cat-name").value = "";
+    document.getElementById("new-cat-skills").value = "";
+    document.getElementById("new-cat-pos").value = "";
+    document.getElementById("new-category-form").classList.add("hidden");
+    showToast("Added category");
+    loadSkills();
+};
+
+document.getElementById("delete-selected-skills-btn").onclick = async () => {
+    const checkboxes = document.querySelectorAll(".skill-checkbox:checked");
+    if (checkboxes.length === 0) { alert("Please select categories to delete"); return; }
+
+    if (confirm(`Delete ${checkboxes.length} selected categories?`)) {
+        const snap = await getDoc(DATA_DOC);
+        let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
+        
+        const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+        // Filter out the items at those indices
+        const filteredSkills = skills_ordered.filter((_, idx) => !indicesToDelete.includes(idx));
+        
+        await setDoc(DATA_DOC, { skills_ordered: filteredSkills }, { merge: true });
+        showToast("Selected skills deleted");
+        loadSkills();
+    }
+};
+
+/* ================= PROJECTS NAV ================= */
+document.getElementById("project-button").onclick = () => {
+    editingProjectId = null;
+    deleteImageFlag = false;
+    deleteVideoFlag = false;
+    document.getElementById("project-form-title").textContent = "Submit New Project";
+    document.getElementById("current-image-preview").classList.add("hidden");
+    document.getElementById("current-video-preview").classList.add("hidden");
+    dashboardPage.classList.add("hidden");
+    projectPage.classList.remove("hidden");
+    document.getElementById("project-form").reset();
+};
+
+document.getElementById("cancel-project-btn").onclick = () => {
+    projectPage.classList.add("hidden");
+    dashboardPage.classList.remove("hidden");
+};
+
+document.getElementById("remove-img-btn").onclick = () => {
+    deleteImageFlag = true;
+    document.getElementById("current-image-preview").classList.add("hidden");
+};
+
+document.getElementById("remove-vid-btn").onclick = () => {
+    deleteVideoFlag = true;
+    document.getElementById("current-video-preview").classList.add("hidden");
+};
+
+document.getElementById("project-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const status = document.getElementById("project-upload-status");
+    status.textContent = "Processing project...";
+
+    const data = {
+        title: document.getElementById("project-title").value.trim(),
+        description: document.getElementById("project-description").value.trim(),
+        technologies: document.getElementById("project-technologies").value.split(",").map(t => t.trim()).filter(Boolean),
+        position: Number(document.getElementById("project-position").value),
+        github: document.getElementById("project-github").value,
+        live: document.getElementById("project-live").value,
+        updatedAt: serverTimestamp()
+    };
+
+    if (deleteImageFlag) data.image = deleteField();
+    if (deleteVideoFlag) data.video = deleteField();
+
+    try {
+        const imgFile = document.getElementById("project-image").files[0];
+        if (imgFile) {
+            status.textContent = "Uploading image...";
+            data.image = await uploadToCloudinary(imgFile);
+        }
+
+        const vidFile = document.getElementById("project-video").files[0];
+        if (vidFile) {
+            status.textContent = "Uploading video...";
+            data.video = await uploadToCloudinary(vidFile);
+        }
+
+        if (editingProjectId) {
+            await updateDoc(doc(db, "projects", editingProjectId), data);
+        } else {
+            data.createdAt = serverTimestamp();
+            await addDoc(PROJECTS, data);
+        }
+
+        projectPage.classList.add("hidden");
+        dashboardPage.classList.remove("hidden");
+        document.getElementById("project-form").reset();
+        status.textContent = "";
+        loadProjects();
+    } catch (err) {
+        status.textContent = "Error saving project.";
+        console.error(err);
+    }
+});
+
+async function loadProjects() {
+    const list = document.getElementById("projects-list");
+    list.innerHTML = "";
+    const snap = await getDocs(query(PROJECTS, orderBy("position", "asc")));
+    if (snap.empty) { list.innerHTML = "<p>No projects added yet.</p>"; return; }
+
+    snap.forEach(d => {
+        const p = d.data();
+        const div = document.createElement("div");
+        div.className = "project-item";
+        div.innerHTML = `
+            <div class="project-left">
+                <div class="folder-icon">📁</div>
+                <div class="project-title">[${p.position}] ${p.title}</div>
+            </div>
+            <div>
+                <button class="change-btn edit">✏ Edit</button>
+                <button class="change-btn delete">🗑 Delete</button>
+            </div>
+        `;
+        div.querySelector(".edit").onclick = () => {
+            editingProjectId = d.id;
+            deleteImageFlag = false;
+            deleteVideoFlag = false;
+            document.getElementById("project-form-title").textContent = "Edit Project";
+            dashboardPage.classList.add("hidden");
+            projectPage.classList.remove("hidden");
+            
+            document.getElementById("project-title").value = p.title || "";
+            document.getElementById("project-description").value = p.description || "";
+            document.getElementById("project-technologies").value = (p.technologies || []).join(", ");
+            document.getElementById("project-position").value = p.position || "";
+            document.getElementById("project-github").value = p.github || "";
+            document.getElementById("project-live").value = p.live || "";
+
+            const imgPrev = document.getElementById("current-image-preview");
+            if (p.image) {
+                imgPrev.classList.remove("hidden");
+                document.getElementById("display-img").src = p.image;
+            } else {
+                imgPrev.classList.add("hidden");
+            }
+
+            const vidPrev = document.getElementById("current-video-preview");
+            if (p.video) {
+                vidPrev.classList.remove("hidden");
+                document.getElementById("display-vid").src = p.video;
+            } else {
+                vidPrev.classList.add("hidden");
+            }
+        };
+        div.querySelector(".delete").onclick = async () => {
+            if (confirm("Delete this project?")) { await deleteDoc(doc(db, "projects", d.id)); loadProjects(); }
+        };
+        list.appendChild(div);
+    });
+}
+
+async function loadDashboard() {
+    loadSkills();
+    loadProjects();
+    const cfg = await getDoc(CONFIG_DOC);
+    if (cfg.exists() && cfg.data().profilePhoto) {
+        document.getElementById("profile-pic").src = cfg.data().profilePhoto;
+    }
+}
+</script>
+</body>
+</html>
