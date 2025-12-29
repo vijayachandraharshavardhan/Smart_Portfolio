@@ -51,8 +51,8 @@
             width: 96px;
             height: 96px;
             border-radius: 50%;
-            object-fit: cover;
             border: 2px solid #333;
+            object-fit: cover;
         }
 
         /* Inputs */
@@ -122,14 +122,14 @@
             text-align: center;
         }
 
-        /* Projects list */
-        .projects-list {
+        /* Projects/Certs list */
+        .projects-list, .certs-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        .project-item {
+        .project-item, .cert-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -139,7 +139,7 @@
             background: #fafafa;
         }
 
-        .project-left {
+        .project-left, .cert-left {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -154,7 +154,7 @@
             justify-content:center;
         }
 
-        .project-title {
+        .project-title, .cert-title {
             font-weight: 600;
         }
 
@@ -223,8 +223,8 @@
 
         @media(max-width: 640px) {
             .page { padding: 16px; margin: 12px; }
-            .project-item { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .project-left { gap: 8px; }
+            .project-item, .cert-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .project-left, .cert-left { gap: 8px; }
             .skill-category-row { flex-direction: column; align-items: stretch; }
         }
     </style>
@@ -291,11 +291,18 @@
                 <button id="project-button">Add New Project</button>
             </div>
         </div>
+
+        <div class="dashboard-section">
+            <h3>Certificates</h3>
+            <div id="certs-list" class="certs-list"></div>
+            <div class="cert-controls" style="margin-top: 15px;">
+                <button id="cert-button">Add New Certificate</button>
+            </div>
+        </div>
     </div>
 
     <div id="project-page" class="page hidden">
         <h2 id="project-form-title">Submit New Project</h2>
-        <p id="submit-message" class="success-message hidden">✔ Project saved successfully!</p>
         <form id="project-form">
             <label for="project-title">Project Title:</label>
             <input type="text" id="project-title" required>
@@ -339,6 +346,33 @@
         </form>
     </div>
 
+    <div id="cert-page" class="page hidden">
+        <h2 id="cert-form-title">Submit New Certificate</h2>
+        <form id="cert-form">
+            <label for="cert-title">Certificate Title:</label>
+            <input type="text" id="cert-title" required>
+            
+            <label for="cert-org">Issuing Organization:</label>
+            <input type="text" id="cert-org" required>
+            
+            <label for="cert-image">Certificate Image:</label>
+            <input type="file" id="cert-image" accept="image/*">
+            <div id="current-cert-image-preview" class="media-preview-container hidden">
+                <p style="font-size: 12px; margin: 0 0 5px 0;">Current Certificate Image:</p>
+                <img src="" id="display-cert-img">
+            </div>
+
+            <label for="cert-position">Position (1, 2, ...):</label>
+            <input type="number" id="cert-position" min="1">
+            
+            <div class="form-buttons">
+                <button type="submit" id="submit-cert-btn">Submit Certificate</button>
+                <button type="button" id="cancel-cert-btn" class="cancel">Cancel</button>
+            </div>
+            <p id="cert-upload-status" style="font-size: 13px; color: #007bff; margin-top: 10px;"></p>
+        </form>
+    </div>
+
     <div id="toast"></div>
 
 <script type="module">
@@ -346,7 +380,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, deleteField } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAHot5O0xWs2GQC6XemRscEEr9Vc_B-8EI",
   authDomain: "my-portfolio-45787.firebaseapp.com",
@@ -367,14 +400,17 @@ const UPLOAD_PRESET = "My_new_Portfolio";
 const CONFIG_DOC = doc(db, "admin_config", "config");
 const DATA_DOC   = doc(db, "admin_data", "data");
 const PROJECTS   = collection(db, "projects");
+const CERTS      = collection(db, "certificates");
 
 let editingProjectId = null;
+let editingCertId = null;
 let deleteImageFlag = false;
 let deleteVideoFlag = false;
 
 const loginPage = document.getElementById("login-page");
 const dashboardPage = document.getElementById("dashboard-page");
 const projectPage = document.getElementById("project-page");
+const certPage = document.getElementById("cert-page");
 
 onAuthStateChanged(auth, user => {
     loginPage.classList.toggle("hidden", !!user);
@@ -434,10 +470,8 @@ function showToast(msg) {
 
 async function loadSkills() {
     const snap = await getDoc(DATA_DOC);
-    // Support legacy objects or new ordered arrays
     let skillsData = snap.exists() ? snap.data().skills_ordered || [] : [];
     
-    // Fallback for old data structure conversion
     if (!Array.isArray(skillsData) && snap.exists()) {
         const oldData = snap.data().skills_categorized || {};
         skillsData = Object.keys(oldData).map((cat, idx) => ({
@@ -447,7 +481,6 @@ async function loadSkills() {
         }));
     }
 
-    // Sort by position
     skillsData.sort((a, b) => (a.position || 0) - (b.position || 0));
 
     const container = document.getElementById("skills-list-admin");
@@ -535,7 +568,6 @@ document.getElementById("delete-selected-skills-btn").onclick = async () => {
         let skills_ordered = snap.exists() ? snap.data().skills_ordered || [] : [];
         
         const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
-        // Filter out the items at those indices
         const filteredSkills = skills_ordered.filter((_, idx) => !indicesToDelete.includes(idx));
         
         await setDoc(DATA_DOC, { skills_ordered: filteredSkills }, { merge: true });
@@ -544,7 +576,7 @@ document.getElementById("delete-selected-skills-btn").onclick = async () => {
     }
 };
 
-/* ================= PROJECTS NAV ================= */
+/* ================= PROJECTS ================= */
 document.getElementById("project-button").onclick = () => {
     editingProjectId = null;
     deleteImageFlag = false;
@@ -660,17 +692,13 @@ async function loadProjects() {
             if (p.image) {
                 imgPrev.classList.remove("hidden");
                 document.getElementById("display-img").src = p.image;
-            } else {
-                imgPrev.classList.add("hidden");
-            }
+            } else { imgPrev.classList.add("hidden"); }
 
             const vidPrev = document.getElementById("current-video-preview");
             if (p.video) {
                 vidPrev.classList.remove("hidden");
                 document.getElementById("display-vid").src = p.video;
-            } else {
-                vidPrev.classList.add("hidden");
-            }
+            } else { vidPrev.classList.add("hidden"); }
         };
         div.querySelector(".delete").onclick = async () => {
             if (confirm("Delete this project?")) { await deleteDoc(doc(db, "projects", d.id)); loadProjects(); }
@@ -679,9 +707,106 @@ async function loadProjects() {
     });
 }
 
+/* ================= CERTIFICATES ================= */
+document.getElementById("cert-button").onclick = () => {
+    editingCertId = null;
+    document.getElementById("cert-form-title").textContent = "Submit New Certificate";
+    document.getElementById("current-cert-image-preview").classList.add("hidden");
+    dashboardPage.classList.add("hidden");
+    certPage.classList.remove("hidden");
+    document.getElementById("cert-form").reset();
+};
+
+document.getElementById("cancel-cert-btn").onclick = () => {
+    certPage.classList.add("hidden");
+    dashboardPage.classList.remove("hidden");
+};
+
+document.getElementById("cert-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const status = document.getElementById("cert-upload-status");
+    status.textContent = "Processing certificate...";
+
+    const data = {
+        title: document.getElementById("cert-title").value.trim(),
+        org: document.getElementById("cert-org").value.trim(),
+        position: Number(document.getElementById("cert-position").value),
+        updatedAt: serverTimestamp()
+    };
+
+    try {
+        const imgFile = document.getElementById("cert-image").files[0];
+        if (imgFile) {
+            status.textContent = "Uploading certificate image...";
+            data.image = await uploadToCloudinary(imgFile);
+        }
+
+        if (editingCertId) {
+            await updateDoc(doc(db, "certificates", editingCertId), data);
+        } else {
+            if(!data.image) { alert("Certificate image is required"); status.textContent=""; return; }
+            data.createdAt = serverTimestamp();
+            await addDoc(CERTS, data);
+        }
+
+        certPage.classList.add("hidden");
+        dashboardPage.classList.remove("hidden");
+        document.getElementById("cert-form").reset();
+        status.textContent = "";
+        loadCertificates();
+    } catch (err) {
+        status.textContent = "Error saving certificate.";
+        console.error(err);
+    }
+});
+
+async function loadCertificates() {
+    const list = document.getElementById("certs-list");
+    list.innerHTML = "";
+    const snap = await getDocs(query(CERTS, orderBy("position", "asc")));
+    if (snap.empty) { list.innerHTML = "<p>No certificates added yet.</p>"; return; }
+
+    snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement("div");
+        div.className = "cert-item";
+        div.innerHTML = `
+            <div class="cert-left">
+                <div class="folder-icon">📜</div>
+                <div class="cert-title">[${c.position}] ${c.title}</div>
+            </div>
+            <div>
+                <button class="change-btn edit-cert">✏ Edit</button>
+                <button class="change-btn delete-cert">🗑 Delete</button>
+            </div>
+        `;
+        div.querySelector(".edit-cert").onclick = () => {
+            editingCertId = d.id;
+            document.getElementById("cert-form-title").textContent = "Edit Certificate";
+            dashboardPage.classList.add("hidden");
+            certPage.classList.remove("hidden");
+            
+            document.getElementById("cert-title").value = c.title || "";
+            document.getElementById("cert-org").value = c.org || "";
+            document.getElementById("cert-position").value = c.position || "";
+
+            const imgPrev = document.getElementById("current-cert-image-preview");
+            if (c.image) {
+                imgPrev.classList.remove("hidden");
+                document.getElementById("display-cert-img").src = c.image;
+            } else { imgPrev.classList.add("hidden"); }
+        };
+        div.querySelector(".delete-cert").onclick = async () => {
+            if (confirm("Delete this certificate?")) { await deleteDoc(doc(db, "certificates", d.id)); loadCertificates(); }
+        };
+        list.appendChild(div);
+    });
+}
+
 async function loadDashboard() {
     loadSkills();
     loadProjects();
+    loadCertificates();
     const cfg = await getDoc(CONFIG_DOC);
     if (cfg.exists() && cfg.data().profilePhoto) {
         document.getElementById("profile-pic").src = cfg.data().profilePhoto;
