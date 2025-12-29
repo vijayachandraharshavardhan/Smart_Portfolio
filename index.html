@@ -344,7 +344,7 @@ I have hands-on experience with a wide range of technologies including Python, J
         <div class="stats-container">
             <div class="stat-block" tabindex="0"><i class="fas fa-certificate"></i><h3 id="cert-stat-total">0</h3><p>Total</p></div>
             <div class="stat-block" tabindex="0"><i class="fas fa-award"></i><h3 id="cert-stat-org">0</h3><p>Organizations</p></div>
-            <div class="stat-block" tabindex="0"><i class="fas fa-check-circle"></i><h3>100%</h3><p>Verified</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-check-circle"></i><h3 id="cert-stat-verified">0</h3><p>Verified</p></div>
             <div class="stat-block" tabindex="0"><i class="fas fa-calendar-alt"></i><h3 id="cert-stat-latest">2025</h3><p>Latest Year</p></div>
         </div>
 
@@ -536,6 +536,7 @@ I have hands-on experience with a wide range of technologies including Python, J
 
         document.getElementById('cert-stat-total').textContent = certificateCache.length;
         document.getElementById('cert-stat-org').textContent = uniqueOrgs.size;
+        document.getElementById('cert-stat-verified').textContent = certificateCache.length;
 
         renderCertificates();
     }
