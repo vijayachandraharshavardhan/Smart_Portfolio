@@ -184,7 +184,7 @@
         .view-work-btn { display: inline-block; margin-top: 30px; padding: 12px 35px; background: linear-gradient(45deg, #00d2ff, #3a7bd5); color: white; text-decoration: none; border-radius: 50px; font-weight: bold; border: none; cursor: pointer; }
         .profile-photo { width: clamp(250px, 30vw, 350px); height: clamp(250px, 30vw, 350px); border-radius: 50%; border: 5px solid var(--primary-color); object-fit: cover; margin-left: 20px; }
 
-        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 40px; }
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 40px; }
         .stat-block i { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 10px; display: block; }
         .stat-block h3 { font-size: 2rem; margin: 5px 0; }
 
@@ -196,10 +196,10 @@
         .filter-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid rgba(0, 210, 255, 0.4); background: transparent; color: #fff; cursor: pointer; transition: 0.3s; }
         .filter-btn.active { background: var(--primary-color); color: #000; }
 
-        /* --- PROJECTS --- */
-        #projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .project-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
-        .project-card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
+        /* --- PROJECTS & CERTIFICATES --- */
+        #projects-grid, #certificates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .project-card, .certificate-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
+        .project-card:hover, .certificate-card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
         .tech-tag { background: rgba(0, 210, 255, 0.15); color: var(--primary-color); padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; }
 
         /* --- MODAL --- */
@@ -273,6 +273,7 @@
                     <li><a onclick="scrollToSection('about-me')">About</a></li>
                     <li><a onclick="scrollToSection('skills')">Skills</a></li>
                     <li><a href="#projects" onclick="closeMobileMenu()">Projects</a></li>
+                    <li><a href="#certificates" onclick="closeMobileMenu()">Certificates</a></li>
                     <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
                     <li><a href="admin.html" id="admin-link">Admin</a></li>
                 </ul>
@@ -290,7 +291,9 @@
                     <p style="font-size: 1.5rem; margin:0; opacity: 0.8;">Hi, I'm</p>
                     <div class="typing-container"><span id="typewriter"></span><span style="animation:blink 1s infinite">|</span></div>
                     <p style="font-size: 1.4rem; color: #ccc;">AI & Ml Engineer | Full Stack | Cloud | Aspiring Software Developer</p>
-                    <button class="view-work-btn" onclick="window.location.hash='projects'">View My Work</button>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                        <button class="view-work-btn" onclick="window.location.hash='projects'">View My Work</button>
+                    </div>
                 </div>
                 <img src="" id="hero-photo" class="profile-photo">
             </div>
@@ -332,6 +335,22 @@ I have hands-on experience with a wide range of technologies including Python, J
         <div id="projects-grid"></div>
     </div>
 
+    <div id="view-certificates" class="page-view" style="display:none; padding: 40px 20px;">
+        <div style="text-align:center; margin-bottom: 50px;">
+            <h2 style="font-size: 3rem; color: var(--primary-color); margin: 0;">Certifications</h2>
+            <p style="color: #ccc;">Recognitions and professional achievements</p>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-block" tabindex="0"><i class="fas fa-certificate"></i><h3 id="cert-stat-total">0</h3><p>Total</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-award"></i><h3 id="cert-stat-org">0</h3><p>Organizations</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-check-circle"></i><h3>100%</h3><p>Verified</p></div>
+            <div class="stat-block" tabindex="0"><i class="fas fa-calendar-alt"></i><h3 id="cert-stat-latest">2025</h3><p>Latest Year</p></div>
+        </div>
+
+        <div id="certificates-grid"></div>
+    </div>
+
     <div id="projectModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -342,9 +361,9 @@ I have hands-on experience with a wide range of technologies including Python, J
                 <div class="modal-left" id="modalVideoContainer"></div>
                 <div class="modal-right">
                     <p id="modalDesc" style="line-height:1.6; color:#ccc;"></p>
-                    <h4 style="color:var(--primary-color);"><i class="fas fa-tools"></i> Technologies Used:</h4>
+                    <h4 id="modalSubTitle" style="color:var(--primary-color);"><i class="fas fa-tools"></i> Technologies Used:</h4>
                     <div id="modalTechGrid" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;"></div>
-                    <div class="btn-group">
+                    <div class="btn-group" id="modalBtnGroup">
                         <a href="#" id="liveDemoLink" class="action-btn demo-btn" target="_blank"><i class="fas fa-external-link-alt"></i> Live Demo</a>
                         <a href="#" id="githubLink" class="action-btn git-btn" target="_blank"><i class="fab fa-github"></i> GitHub</a>
                     </div>
@@ -387,15 +406,10 @@ I have hands-on experience with a wide range of technologies including Python, J
 </footer>
 
 <script type="module">
-  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
   import { getFirestore, doc, collection, getDoc, getDocs, query, orderBy} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyAHot5O0xWs2GQC6XemRscEEr9Vc_B-8EI",
     authDomain: "my-portfolio-45787.firebaseapp.com",
@@ -406,11 +420,11 @@ I have hands-on experience with a wide range of technologies including Python, J
     measurementId: "G-PZZ74C1CC8"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
     let projectCache = [];
+    let certificateCache = [];
     let activeFilter = 'All';
     const fullName = "Battu Vijaya Chandra Harsha Vardhan";
     let charIdx = 0;
@@ -436,6 +450,7 @@ I have hands-on experience with a wide range of technologies including Python, J
     };
 
     async function loadData() {
+        // --- LOAD CONFIG ---
         const configSnap = await getDoc(doc(db, "admin_config", "config"));
         if (configSnap.exists()) {
             const url = configSnap.data().profilePhoto;
@@ -443,26 +458,22 @@ I have hands-on experience with a wide range of technologies including Python, J
             document.getElementById('hero-photo').src = url;
         }
         
-        // --- UPDATED SKILLS RENDERING: Handling the array of objects as per image structure ---
+        // --- LOAD SKILLS ---
         const dataSnap = await getDoc(doc(db, "admin_data", "data"));
         if (dataSnap.exists()) {
-            // Updated to pull 'skills_ordered' which is now an array
             const skills_ordered = dataSnap.data().skills_ordered || [];
             const skillsGrid = document.getElementById('skills-grid');
             skillsGrid.innerHTML = ''; 
 
-            // Iterate through the array objects (category, position, skills)
             skills_ordered.sort((a, b) => (a.position || 0) - (b.position || 0)).forEach((skillObj) => {
                 const category = skillObj.category;
                 const skillsString = skillObj.skills;
-
                 if(!skillsString || !category) return; 
 
                 const categoryBlock = document.createElement('div');
                 categoryBlock.className = 'stat-block'; 
                 categoryBlock.style.textAlign = 'left';
                 categoryBlock.style.padding = '20px';
-                
                 const skillList = skillsString.split(',').map(s => s.trim()).filter(s => s !== "");
                 
                 let iconClass = 'fa-code'; 
@@ -486,6 +497,7 @@ I have hands-on experience with a wide range of technologies including Python, J
             });
         }
 
+        // --- LOAD PROJECTS ---
         const q = query(collection(db, "projects"), orderBy("position", "asc"));
         const projSnap = await getDocs(q);
         const uniqueTechs = new Set();
@@ -510,11 +522,28 @@ I have hands-on experience with a wide range of technologies including Python, J
             filterContainer.appendChild(btn);
         });
         renderProjects();
+
+        // --- LOAD CERTIFICATES ---
+        const certQ = query(collection(db, "certificates"), orderBy("position", "asc"));
+        const certSnap = await getDocs(certQ);
+        const uniqueOrgs = new Set();
+        certificateCache = [];
+        certSnap.forEach(snap => {
+            const c = { id: snap.id, ...snap.data() };
+            certificateCache.push(c);
+            if(c.issuer) uniqueOrgs.add(c.issuer);
+        });
+
+        document.getElementById('cert-stat-total').textContent = certificateCache.length;
+        document.getElementById('cert-stat-org').textContent = uniqueOrgs.size;
+
+        renderCertificates();
     }
 
+    // --- PROJECTS LOGIC ---
     window.setFilter = (tech) => {
         activeFilter = tech;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.textContent === tech));
+        document.querySelectorAll('#skillFilters .filter-btn').forEach(b => b.classList.toggle('active', b.textContent === tech));
         filterProjects();
     };
 
@@ -543,29 +572,68 @@ I have hands-on experience with a wide range of technologies including Python, J
         `).join('');
     }
 
+    // --- CERTIFICATES LOGIC ---
+    function renderCertificates(data = certificateCache) {
+        const grid = document.getElementById('certificates-grid');
+        grid.innerHTML = data.map(c => `
+            <div class="certificate-card" onclick="openCertificate('${c.id}')">
+                <div style="height:220px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <img src="${c.image || ''}" style="width:100%; height:100%; object-fit:contain; background:#050f13;">
+                </div>
+                <div style="padding:20px;">
+                    <h3 style="color:var(--primary-color);margin:0; font-size:1.1rem;">${c.title}</h3>
+                    <p style="margin:10px 0 0; font-size:0.9rem; opacity:0.7;"><i class="fas fa-building"></i> ${c.issuer || 'Credential'}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // --- MODAL LOGIC ---
     window.openProject = (id) => {
         const p = projectCache.find(x => x.id === id);
         if(!p) return;
         document.getElementById('modalTitle').textContent = p.title;
         document.getElementById('modalDesc').textContent = p.description;
+        document.getElementById('modalSubTitle').innerHTML = `<i class="fas fa-tools"></i> Technologies Used:`;
+        document.getElementById('modalTechGrid').style.display = 'flex';
         document.getElementById('modalTechGrid').innerHTML = (p.technologies || []).map(t => `<span class="tech-tag" style="background:rgba(0,210,255,0.2); color:white;">${t}</span>`).join('');
         document.getElementById('modalVideoContainer').innerHTML = p.video ? `<video src="${p.video}" controls autoplay style="width:100%; border-radius:10px;"></video>` : `<img src="${p.image}" style="width:100%; border-radius:10px;">`;
+        document.getElementById('modalBtnGroup').style.display = 'flex';
         document.getElementById('liveDemoLink').href = p.live || "#";
         document.getElementById('githubLink').href = p.github || "#";
         document.getElementById('projectModal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
     };
 
+    window.openCertificate = (id) => {
+        const c = certificateCache.find(x => x.id === id);
+        if(!c) return;
+        document.getElementById('modalTitle').textContent = c.title;
+        document.getElementById('modalDesc').textContent = c.description || "Professional certification issued by " + c.issuer;
+        document.getElementById('modalSubTitle').innerHTML = `<i class="fas fa-id-card"></i> Certificate Information:`;
+        document.getElementById('modalTechGrid').innerHTML = `<span class="tech-tag" style="background:rgba(0,210,255,0.2); color:white;">Issuer: ${c.issuer}</span>`;
+        document.getElementById('modalVideoContainer').innerHTML = `<img src="${c.image}" style="width:100%; border-radius:10px; border:1px solid #333;">`;
+        document.getElementById('modalBtnGroup').style.display = 'flex';
+        document.getElementById('liveDemoLink').innerHTML = `<i class="fas fa-external-link-alt"></i> View Certificate`;
+        document.getElementById('liveDemoLink').href = c.link || "#";
+        document.getElementById('githubLink').style.display = 'none';
+        document.getElementById('projectModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
     window.closeModal = () => {
         document.getElementById('projectModal').style.display = 'none';
         document.getElementById('modalVideoContainer').innerHTML = ""; 
+        document.getElementById('githubLink').style.display = 'flex';
+        document.getElementById('liveDemoLink').innerHTML = `<i class="fas fa-external-link-alt"></i> Live Demo`;
         document.body.style.overflow = 'auto';
     };
 
+    // --- ROUTING ---
     function handleRoute() {
         const hash = window.location.hash.replace('#', '') || 'home';
         const adminLink = document.getElementById('admin-link');
-        adminLink.style.display = (hash === 'projects') ? 'block' : 'none';
+        adminLink.style.display = (hash === 'projects' || hash === 'certificates') ? 'block' : 'none';
 
         document.querySelectorAll('.page-view').forEach(v => v.style.display = 'none');
         const view = document.getElementById(`view-${hash}`);
@@ -629,6 +697,3 @@ I have hands-on experience with a wide range of technologies including Python, J
 </script>
 </body>
 </html>
-
-
-
