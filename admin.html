@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin Login & Dashboard</title>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
     <style>
         /* Basic layout */
         body {
@@ -355,8 +357,8 @@
             <label for="cert-org">Issuing Organization:</label>
             <input type="text" id="cert-org" required>
             
-            <label for="cert-image">Certificate Image:</label>
-            <input type="file" id="cert-image" accept="image/*">
+            <label for="cert-image">Certificate File (Image or PDF):</label>
+            <input type="file" id="cert-image" accept="image/*,application/pdf">
             <div id="current-cert-image-preview" class="media-preview-container hidden">
                 <p style="font-size: 12px; margin: 0 0 5px 0;">Current Certificate Image:</p>
                 <img src="" id="display-cert-img">
@@ -379,6 +381,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 import { getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, deleteField } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+// PDF.js worker setup
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAHot5O0xWs2GQC6XemRscEEr9Vc_B-8EI",
@@ -430,7 +435,7 @@ document.getElementById("login-form").addEventListener("submit", async e => {
 document.getElementById("logout-button").onclick = () => signOut(auth);
 
 async function uploadToCloudinary(file) {
-    const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+    const resourceType = file.type && file.type.startsWith('video/') ? 'video' : 'image';
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
@@ -441,6 +446,29 @@ async function uploadToCloudinary(file) {
     });
     const data = await res.json();
     return data.secure_url;
+}
+
+// Helper to convert PDF to Image Blob
+async function convertPdfToImage(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2.0 });
+    
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({ canvasContext: context, viewport: viewport }).promise;
+    
+    return new Promise(resolve => {
+        canvas.toBlob(blob => {
+            // Give it a filename so Cloudinary handles it correctly
+            const imageFile = new File([blob], "certificate.png", { type: "image/png" });
+            resolve(imageFile);
+        }, 'image/png');
+    });
 }
 
 document.getElementById("add-change-photo").onclick = () => document.getElementById("photo-input").click();
@@ -735,16 +763,24 @@ document.getElementById("cert-form").addEventListener("submit", async e => {
     };
 
     try {
-        const imgFile = document.getElementById("cert-image").files[0];
-        if (imgFile) {
+        let file = document.getElementById("cert-image").files[0];
+        if (file) {
+            status.textContent = "Checking file format...";
+            
+            // Handle PDF extraction
+            if (file.type === "application/pdf") {
+                status.textContent = "Extracting image from PDF...";
+                file = await convertPdfToImage(file);
+            }
+
             status.textContent = "Uploading certificate image...";
-            data.image = await uploadToCloudinary(imgFile);
+            data.image = await uploadToCloudinary(file);
         }
 
         if (editingCertId) {
             await updateDoc(doc(db, "certificates", editingCertId), data);
         } else {
-            if(!data.image) { alert("Certificate image is required"); status.textContent=""; return; }
+            if(!data.image) { alert("Certificate file is required"); status.textContent=""; return; }
             data.createdAt = serverTimestamp();
             await addDoc(CERTS, data);
         }
