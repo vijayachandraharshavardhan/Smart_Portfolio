@@ -19,7 +19,7 @@
             font-family: 'Segoe UI', Arial, sans-serif; 
             margin: 0; 
             background: var(--dark-bg); 
-            color: white;
+            color: white; 
             scroll-behavior: smooth; 
             overflow-x: hidden; 
             display: flex; 
@@ -218,6 +218,15 @@
         .demo-btn { background: #00d2ff; color: #000; }
         .git-btn { background: #333; color: #fff; border: 1px solid #555; }
 
+        /* --- CERTIFICATE FULL SCREEN VIEWER --- */
+        .cert-viewer {
+            display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); align-items: center; justify-content: center;
+        }
+        .cert-viewer img { max-width: 95%; max-height: 90vh; border-radius: 5px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .close-viewer { position: absolute; top: 20px; right: 30px; color: white; font-size: 3rem; cursor: pointer; transition: 0.3s; }
+        .close-viewer:hover { color: var(--primary-color); }
+
         /* --- FOOTER --- */
         .unified-footer {
             background: #050f13;
@@ -370,6 +379,11 @@ I have hands-on experience with a wide range of technologies including Python, J
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="certificateViewer" class="cert-viewer">
+        <span class="close-viewer" onclick="closeCertificateViewer()">&times;</span>
+        <img id="viewerImg" src="" alt="Certificate Full View">
     </div>
 
     <div id="view-contact" class="page-view" style="display:none;">
@@ -531,7 +545,7 @@ I have hands-on experience with a wide range of technologies including Python, J
         certSnap.forEach(snap => {
             const c = { id: snap.id, ...snap.data() };
             certificateCache.push(c);
-            if(c.issuer) uniqueOrgs.add(c.issuer);
+            if(c.org) uniqueOrgs.add(c.org);
         });
 
         document.getElementById('cert-stat-total').textContent = certificateCache.length;
@@ -583,7 +597,8 @@ I have hands-on experience with a wide range of technologies including Python, J
                 </div>
                 <div style="padding:20px;">
                     <h3 style="color:var(--primary-color);margin:0; font-size:1.1rem;">${c.title}</h3>
-                    <p style="margin:10px 0 0; font-size:0.9rem; opacity:0.7;"><i class="fas fa-building"></i> ${c.issuer || 'Credential'}</p>
+                    <p style="margin:10px 0 0; font-size:0.9rem; opacity:0.8; color: #fff;">Issued By: ${c.org || 'N/A'}</p>
+                    <p style="margin:5px 0 0; font-size:0.85rem; opacity:0.6;"><i class="fas fa-building"></i> Professional Credential</p>
                 </div>
             </div>
         `).join('');
@@ -609,17 +624,16 @@ I have hands-on experience with a wide range of technologies including Python, J
     window.openCertificate = (id) => {
         const c = certificateCache.find(x => x.id === id);
         if(!c) return;
-        document.getElementById('modalTitle').textContent = c.title;
-        document.getElementById('modalDesc').textContent = c.description || "Professional certification issued by " + c.issuer;
-        document.getElementById('modalSubTitle').innerHTML = `<i class="fas fa-id-card"></i> Certificate Information:`;
-        document.getElementById('modalTechGrid').innerHTML = `<span class="tech-tag" style="background:rgba(0,210,255,0.2); color:white;">Issuer: ${c.issuer}</span>`;
-        document.getElementById('modalVideoContainer').innerHTML = `<img src="${c.image}" style="width:100%; border-radius:10px; border:1px solid #333;">`;
-        document.getElementById('modalBtnGroup').style.display = 'flex';
-        document.getElementById('liveDemoLink').innerHTML = `<i class="fas fa-external-link-alt"></i> View Certificate`;
-        document.getElementById('liveDemoLink').href = c.link || "#";
-        document.getElementById('githubLink').style.display = 'none';
-        document.getElementById('projectModal').style.display = 'flex';
+        const viewer = document.getElementById('certificateViewer');
+        const viewerImg = document.getElementById('viewerImg');
+        viewerImg.src = c.image;
+        viewer.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+    };
+
+    window.closeCertificateViewer = () => {
+        document.getElementById('certificateViewer').style.display = 'none';
+        document.body.style.overflow = 'auto';
     };
 
     window.closeModal = () => {
